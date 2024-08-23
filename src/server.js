@@ -25,7 +25,7 @@ export const startServer = () => {
     }),
   );
 
-  app.use('/contacts', router);
+  app.use(router);
 
   app.use('*', notFoundHandler);
 
