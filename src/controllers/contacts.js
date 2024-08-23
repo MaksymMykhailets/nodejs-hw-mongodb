@@ -21,25 +21,27 @@ export const getContactsController = async (req, res, next) => {
     sortBy,
     sortOrder,
     filter,
+    userId: req.user._id,
   });
-
-  if (page > contacts.totalPages) {
-    return next(createHttpError(404, 'Page not found'));
-  }
 
   res.json({
     status: 200,
-    message: 'Successfully found  contacts',
+    message: 'Successfully found contacts',
     data: contacts,
   });
 };
 
-export const getContactByIdController = async (req, res) => {
+export const getContactByIdController = async (req, res, next) => {
   const { id } = req.params;
-  const contact = await getContactById(id);
+  const userId = req.user._id;
+  const contact = await getContactById(id, userId);
 
   if (!contact) {
     throw createHttpError(404, 'Contact not found');
+  }
+
+  if (contact.userId.toString() !== userId.toString()) {
+    return next(createHttpError(403, 'Access denied'));
   }
 
   res.json({
@@ -50,7 +52,9 @@ export const getContactByIdController = async (req, res) => {
 };
 
 export const createContactController = async (req, res) => {
-  const contact = await createContact(req.body);
+  const payload = { ...req.body };
+  const { _id: userId } = req.user._id;
+  const contact = await createContact(payload, userId);
 
   res.status(201).json({
     status: 201,
@@ -60,8 +64,9 @@ export const createContactController = async (req, res) => {
 };
 
 export const patchContactController = async (req, res, next) => {
+  const userId = req.user._id;
   const { id } = req.params;
-  const result = await updateContact(id, req.body);
+  const result = await updateContact(id, req.body, userId);
 
   if (!result) {
     next(createHttpError(404, 'Contact not found'));
@@ -76,9 +81,10 @@ export const patchContactController = async (req, res, next) => {
 };
 
 export const deleteContactController = async (req, res, next) => {
+  const userId = req.user._id;
   const { id } = req.params;
 
-  const contact = await deleteContact(id);
+  const contact = await deleteContact(id, userId);
 
   if (!contact) {
     next(createHttpError(404, 'Contact not found'));
