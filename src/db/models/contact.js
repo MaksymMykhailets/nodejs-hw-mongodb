@@ -25,7 +25,14 @@ const contactstsSchema = new Schema(
       required: true,
       default: 'personal',
     },
-    userId: { type: Schema.Types.ObjectId, required: true },
+    userId: {
+      type: Schema.Types.ObjectId,
+      required: true,
+    },
+    photo: {
+      type: String,
+      default: null,
+    },
   },
   {
     timestamps: true,
